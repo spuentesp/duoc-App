@@ -20,8 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.app.ui.theme.AppTheme
-import com.example.app.view.AppNavigation
-import com.example.app.view.AppScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +47,7 @@ fun MainScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // El botón que te lleva a la pantalla Home.
+
             Button(onClick = { navController.navigate(AppScreen.HomeScreen.route) }) {
                 Text("Take me home")
             }

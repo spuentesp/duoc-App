@@ -21,11 +21,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.app.AppScreen
 import com.example.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun homeScreen() {
+fun homeScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Mi Aplicación en Kotlin") })
@@ -41,7 +44,8 @@ fun homeScreen() {
             Text(text = "Bienvenid@!",
                 fontWeight = FontWeight.Bold
             )
-            Button(onClick = {/*Acción para que me lleve a otra ventana que muestre una imagen */},
+            Button(
+                onClick = { navController.navigate(AppScreen.MainScreen.route)},
                 colors = ButtonDefaults.buttonColors(
                     Color.Red,
                     Color.White
@@ -68,6 +72,6 @@ fun homeScreen() {
 @Preview (showBackground = true)
 @Composable
 fun homeScreenPreview(){
-    homeScreen()
+    homeScreen(navController = rememberNavController())
 }
 
