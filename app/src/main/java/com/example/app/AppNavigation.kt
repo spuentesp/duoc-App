@@ -4,8 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.app.MainScreen
-import com.example.app.view.homeScreen
+import com.example.app.view.HomeScreen
 
 sealed class AppScreen(val route: String){
     object HomeScreen : AppScreen("home_screen")
@@ -18,11 +17,11 @@ fun AppNavigation() {
 
     NavHost(navController = navController, startDestination = AppScreen.HomeScreen.route ){
         composable(route = AppScreen.HomeScreen.route){
-            AppScreen.HomeScreen(navController = navController)
+            HomeScreen(navController = navController)
         }
 
         composable(route = AppScreen.MainScreen.route){
-            AppScreen.MainScreen(navController = navController)
+            MainScreen(navController = navController)
         }
     }
 }

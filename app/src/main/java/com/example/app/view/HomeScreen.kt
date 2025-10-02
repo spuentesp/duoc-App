@@ -28,7 +28,7 @@ import com.example.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun homeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Mi Aplicación en Kotlin") })
@@ -71,7 +71,7 @@ fun homeScreen(navController: NavController) {
 
 @Preview (showBackground = true)
 @Composable
-fun homeScreenPreview(){
-    homeScreen(navController = rememberNavController())
+fun HomeScreenPreview(){
+    HomeScreen(navController = rememberNavController())
 }
 
