@@ -1,0 +1,60 @@
+package com.example.app.view
+
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.app.viewmodel.AuthViewModel
+
+sealed class AppScreen(val route: String){
+    object Welcome : AppScreen("welcome")
+    object Register : AppScreen("register")
+    object Login : AppScreen("login")
+    object QuickLogin : AppScreen("quick_login")
+    object Profile : AppScreen("profile")
+    object HomeScreen : AppScreen("home_screen")
+    object MainScreen : AppScreen("main_screen")
+    object SettingsScreen : AppScreen("settings_screen")
+}
+
+@Composable
+fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
+    val navController = rememberNavController()
+    val hasUser = authViewModel.hasExistingUser()
+    val startDestination = if (hasUser) AppScreen.QuickLogin.route else AppScreen.Login.route
+
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(route = AppScreen.Welcome.route) {
+            WelcomeScreen(navController = navController, authViewModel = authViewModel)
+        }
+
+        composable(route = AppScreen.Register.route) {
+            RegisterScreen(navController = navController, authViewModel = authViewModel)
+        }
+
+        composable(route = AppScreen.Login.route) {
+            LoginScreen(navController = navController, authViewModel = authViewModel)
+        }
+
+        composable(route = AppScreen.QuickLogin.route) {
+            QuickLoginScreen(navController = navController, authViewModel = authViewModel)
+        }
+
+        composable(route = AppScreen.Profile.route) {
+            ProfileScreen(navController = navController, authViewModel = authViewModel)
+        }
+
+        composable(route = AppScreen.HomeScreen.route) {
+            homeScreen(navController)
+        }
+
+        composable(route = AppScreen.MainScreen.route) {
+            MainScreen(navController = navController)
+        }
+
+        composable(route = AppScreen.SettingsScreen.route) {
+            SettingsScreen(navController = navController)
+        }
+    }
+}
