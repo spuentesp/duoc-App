@@ -18,6 +18,7 @@ sealed class AppScreen(val route: String){
     object HomeScreen : AppScreen("home_screen")
     object MainScreen : AppScreen("main_screen")
     object SettingsScreen : AppScreen("settings_screen")
+    object PokemonExplorer : AppScreen("pokemon_explorer")
     object PokemonList : AppScreen("pokemon_list")
     object PokemonDetail : AppScreen("pokemon_detail/{pokemonName}") {
         fun createRoute(pokemonName: String) = "pokemon_detail/$pokemonName"
@@ -53,6 +54,17 @@ fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
 
         composable(route = AppScreen.HomeScreen.route) {
             homeScreen(navController)
+        }
+
+        composable(route = AppScreen.PokemonExplorer.route) {
+            PokemonExplorerScreen(
+                onPokemonSelected = { name ->
+                    navController.navigate(AppScreen.PokemonDetail.createRoute(name))
+                },
+                onProfileClick = {
+                    navController.navigate(AppScreen.Profile.route)
+                }
+            )
         }
 
         composable(route = AppScreen.PokemonList.route) {

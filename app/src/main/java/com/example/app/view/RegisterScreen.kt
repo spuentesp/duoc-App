@@ -40,7 +40,7 @@ fun RegisterScreen(
 
     LaunchedEffect(registrationSuccess) {
         if (registrationSuccess == true) {
-            navController.navigate(AppScreen.Profile.route) {
+            navController.navigate(AppScreen.PokemonExplorer.route) {
                 popUpTo(AppScreen.Register.route) { inclusive = true }
             }
         }

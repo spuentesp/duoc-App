@@ -18,7 +18,7 @@ fun AuthenticatedApp(
     LaunchedEffect(isAuthenticated, hasExistingUser) {
         when {
             isAuthenticated == true -> {
-                navController.navigate(AppScreen.Profile.route) {
+                navController.navigate(AppScreen.PokemonExplorer.route) {
                     popUpTo(AppScreen.Welcome.route) { inclusive = true }
                 }
             }

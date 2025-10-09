@@ -42,7 +42,7 @@ fun QuickLoginScreen(
 
     LaunchedEffect(isAuthenticated) {
         if (isAuthenticated == true) {
-            navController.navigate(AppScreen.Profile.route) {
+            navController.navigate(AppScreen.PokemonExplorer.route) {
                 popUpTo(AppScreen.QuickLogin.route) { inclusive = true }
             }
         }

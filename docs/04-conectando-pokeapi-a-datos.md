@@ -186,6 +186,97 @@ class PokemonViewModel(
 
 Archivo: `app/src/main/java/com/example/app/view/PokemonScreens.kt`
 
+### `PokemonExplorerScreen`: hub principal tras el login
+
+```kotlin
+@Composable
+fun PokemonExplorerScreen(
+    onPokemonSelected: (String) -> Unit,
+    onProfileClick: () -> Unit,
+    viewModel: PokemonViewModel = viewModel()
+) {
+    val listState = viewModel.listState
+    val detailState = viewModel.detailState
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(Unit) {
+        viewModel.loadList()
+        snackbarHostState.showSnackbar(
+            message = "Explora Pokémon y usa el icono para abrir tu perfil."
+        )
+    }
+
+    fun performSearch() { /* dispara viewModel.loadDetail(...) */ }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Pokédex") },
+                actions = {
+                    IconButton(onClick = onProfileClick) {
+                        Icon(Icons.Default.Person, contentDescription = "Ir al perfil")
+                    }
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedTextField(/* búsqueda con IME Search */)
+            Button(onClick = { performSearch() }, enabled = searchQuery.isNotBlank()) {
+                Text("Consultar")
+            }
+            if (detailState.isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
+            detailState.detail?.let { detail ->
+                Card {
+                    /* Nombre, imagen, tipos y botón "Ver detalle completo" */
+                }
+            }
+            Text("Pokémon disponibles")
+            if (listState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = true)
+            ) {
+                items(listState.pokemons) { pokemon ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                searchQuery = pokemon.name
+                                viewModel.loadDetail(pokemon.name)
+                            }
+                    ) {
+                        Text(
+                            text = pokemon.name.replaceFirstChar { it.uppercase() },
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+> Además del icono del AppBar, se muestra un `Snackbar` inicial que recuerda cómo volver al perfil sin quitar protagonismo a la Pokédex.
+
+### `PokemonListScreen`: componente reutilizable
+
 ```kotlin
 @Composable
 fun PokemonListScreen(
@@ -210,7 +301,7 @@ fun PokemonListScreen(
         }
 
         state.error?.let { error ->
-            Text(text = "Error: $error", color = Color.Red)
+            Text(text = "Error: $error", color = MaterialTheme.colorScheme.error)
         }
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -231,6 +322,8 @@ fun PokemonListScreen(
     }
 }
 ```
+
+### `PokemonDetailScreen`: detalle standalone
 
 ```kotlin
 @Composable
@@ -254,7 +347,7 @@ fun PokemonDetailScreen(
         }
 
         state.error?.let { error ->
-            Text(text = "Error: $error", color = Color.Red)
+            Text(text = "Error: $error", color = MaterialTheme.colorScheme.error)
         }
 
         state.detail?.let { detail ->

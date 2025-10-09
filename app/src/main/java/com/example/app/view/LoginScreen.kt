@@ -38,7 +38,7 @@ fun LoginScreen(
 
     LaunchedEffect(isAuthenticated) {
         if (isAuthenticated == true) {
-            navController.navigate(AppScreen.Profile.route) {
+            navController.navigate(AppScreen.PokemonExplorer.route) {
                 popUpTo(AppScreen.Login.route) { inclusive = true }
             }
         }

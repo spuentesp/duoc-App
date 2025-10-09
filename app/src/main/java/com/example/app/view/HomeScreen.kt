@@ -55,7 +55,7 @@ fun homeScreen(navController: NavController? = null) {
 
             OutlinedButton(
                 onClick = {
-                    navController?.navigate(AppScreen.PokemonList.route)
+                    navController?.navigate(AppScreen.PokemonExplorer.route)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
