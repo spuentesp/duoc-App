@@ -1,41 +1,36 @@
 package com.example.app.model
 
-import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.SerializedName
 
+data class BasicPokemon(
+    val name: String,
+    val url: String
+)
 
-
-data class Pokemon(val id: Int,
-                   val name: String,
-                   val sprites: PokemonSprites,
-                   val types: List<PokemonTypeEntry>,
-                   val stats: List<PokemonStatEntry>)
-
-
-data class PokemonSprites(
-    // @serializedname se usa si el nombre del campo en json es diferente al de la variable
-    @SerializedName("front_default")
-    val frontDefault: String
+data class PokemonListResponse(
+    val results: List<BasicPokemon>
 )
 
 data class PokemonTypeEntry(
-    var slot: Int,
-    val Type: PokemonType
+    val slot: Int,
+    val type: TypeInfo
 )
 
-data class PokemonType(
+data class TypeInfo(
     val name: String
 )
 
-data class PokemonStatEntry(
-    @SerializedName("base_stat")
-    val baseStat: Int,
-    val stat: PokemonStat
+data class PokemonDetail(
+    val id: Int,
+    val name: String,
+    val types: List<PokemonTypeEntry>,
+    val sprites: Sprites
 )
 
-data class PokemonStat(
-    val name:String
+data class Sprites(
+    @SerializedName("front_default")
+    val frontDefault: String?
 )
-
 
 
 

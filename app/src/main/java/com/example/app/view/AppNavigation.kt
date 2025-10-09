@@ -2,9 +2,11 @@ package com.example.app.view
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.app.viewmodel.AuthViewModel
 
 sealed class AppScreen(val route: String){
@@ -16,6 +18,10 @@ sealed class AppScreen(val route: String){
     object HomeScreen : AppScreen("home_screen")
     object MainScreen : AppScreen("main_screen")
     object SettingsScreen : AppScreen("settings_screen")
+    object PokemonList : AppScreen("pokemon_list")
+    object PokemonDetail : AppScreen("pokemon_detail/{pokemonName}") {
+        fun createRoute(pokemonName: String) = "pokemon_detail/$pokemonName"
+    }
 }
 
 @Composable
@@ -47,6 +53,24 @@ fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
 
         composable(route = AppScreen.HomeScreen.route) {
             homeScreen(navController)
+        }
+
+        composable(route = AppScreen.PokemonList.route) {
+            PokemonListScreen(
+                onPokemonClick = { name ->
+                    navController.navigate(AppScreen.PokemonDetail.createRoute(name))
+                }
+            )
+        }
+
+        composable(
+            route = AppScreen.PokemonDetail.route,
+            arguments = listOf(
+                navArgument("pokemonName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val pokemonName = backStackEntry.arguments?.getString("pokemonName") ?: return@composable
+            PokemonDetailScreen(pokemonName = pokemonName)
         }
 
         composable(route = AppScreen.MainScreen.route) {

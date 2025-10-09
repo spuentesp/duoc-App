@@ -53,6 +53,17 @@ fun homeScreen(navController: NavController? = null) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            OutlinedButton(
+                onClick = {
+                    navController?.navigate(AppScreen.PokemonList.route)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Pokédex")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Image(
                 painter = painterResource(id = R.drawable.logo),
                 contentDescription = "Logo App",
@@ -70,4 +81,3 @@ fun homeScreen(navController: NavController? = null) {
 fun homeScreenPreview(){
     homeScreen()
 }
-
