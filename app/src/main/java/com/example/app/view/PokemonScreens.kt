@@ -394,6 +394,7 @@ fun PokemonListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonDetailScreen(
     pokemonName: String,
