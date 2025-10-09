@@ -1,7 +1,7 @@
 package com.example.app.model
 
+import com.google.gson.annotations.SerializedName;
 
-import SerializedName
 
 
 data class Pokemon(val id: Int,
