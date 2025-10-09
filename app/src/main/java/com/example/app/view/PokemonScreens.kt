@@ -25,8 +25,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -34,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,21 +55,30 @@ fun PokemonExplorerScreen(
     val listState = viewModel.listState
     val detailState = viewModel.detailState
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
+    var limitInput by rememberSaveable { mutableStateOf(listState.limit.toString()) }
+    var offsetInput by rememberSaveable { mutableStateOf(listState.offset.toString()) }
 
     LaunchedEffect(Unit) {
         viewModel.loadList()
-        snackbarHostState.showSnackbar(
-            message = "Explora Pokémon y usa el icono para abrir tu perfil."
-        )
+    }
+
+    LaunchedEffect(listState.limit, listState.offset) {
+        limitInput = listState.limit.toString()
+        offsetInput = listState.offset.toString()
     }
 
     fun performSearch() {
-        val query = searchQuery.trim().lowercase()
+        val query = searchQuery.trim()
+        if (query.isEmpty()) return
+        val normalized = if (query.any { it.isLetter() }) {
+            query.lowercase()
+        } else {
+            query
+        }
         if (query.isNotEmpty()) {
             focusManager.clearFocus()
-            viewModel.loadDetail(query)
+            viewModel.loadDetail(normalized)
         }
     }
 
@@ -89,7 +96,6 @@ fun PokemonExplorerScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -98,10 +104,15 @@ fun PokemonExplorerScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = "Explora Pokémon y utiliza el icono del AppBar para volver a tu perfil.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Buscar Pokémon por nombre") },
+                label = { Text("Buscar por nombre o número") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -109,6 +120,45 @@ fun PokemonExplorerScreen(
                     onSearch = { performSearch() }
                 )
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = limitInput,
+                    onValueChange = { limitInput = it },
+                    label = { Text("Limit") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    )
+                )
+                OutlinedTextField(
+                    value = offsetInput,
+                    onValueChange = { offsetInput = it },
+                    label = { Text("Offset") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    )
+                )
+                Button(
+                    onClick = {
+                        val parsedLimit = limitInput.toIntOrNull()?.takeIf { it > 0 } ?: 20
+                        val parsedOffset = offsetInput.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                        focusManager.clearFocus()
+                        viewModel.loadList(parsedLimit, parsedOffset)
+                    }
+                ) {
+                    Text("Actualizar")
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -162,6 +212,67 @@ fun PokemonExplorerScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        val species = detailState.species
+                        species?.let { info ->
+                            val flavor = info.flavorTextEntries.firstOrNull { entry ->
+                                entry.language.name == "es"
+                            } ?: info.flavorTextEntries.firstOrNull { entry ->
+                                entry.language.name == "en"
+                            }
+
+                            flavor?.flavorText
+                                ?.replace("\n", " ")
+                                ?.replace("\u000c", " ")
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { flavorText ->
+                                    Text(
+                                        text = flavorText,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+
+                            val genus = info.genera.firstOrNull { entry ->
+                                entry.language.name == "es"
+                            } ?: info.genera.firstOrNull { entry ->
+                                entry.language.name == "en"
+                            }
+
+                            genus?.let { entry ->
+                                Text(
+                                    text = "Especie: ${entry.genus}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                            }
+
+                            Text(
+                                text = "Felicidad base: ${info.baseHappiness ?: "—"}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Ratio de captura: ${info.captureRate ?: "—"}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+
+                            info.evolvesFromSpecies?.name?.let { origin ->
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Evoluciona de: ${origin.replaceFirstChar { it.uppercase() }}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+
+                        detailState.speciesError?.let { speciesError ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No fue posible cargar información adicional: $speciesError",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
                         TextButton(
                             onClick = { onPokemonSelected(detail.name) }
                         ) {
@@ -193,6 +304,7 @@ fun PokemonExplorerScreen(
                     .weight(1f, fill = true)
             ) {
                 items(listState.pokemons) { pokemon ->
+                    val idFromUrl = pokemon.url.trimEnd('/').substringAfterLast('/').toIntOrNull()
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -203,7 +315,12 @@ fun PokemonExplorerScreen(
                             }
                     ) {
                         Text(
-                            text = pokemon.name.replaceFirstChar { it.uppercase() },
+                            text = buildString {
+                                idFromUrl?.let {
+                                    append("#$it - ")
+                                }
+                                append(pokemon.name.replaceFirstChar { char -> char.uppercase() })
+                            },
                             modifier = Modifier.padding(16.dp)
                         )
                     }

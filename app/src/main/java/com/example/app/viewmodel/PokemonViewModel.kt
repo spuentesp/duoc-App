@@ -18,14 +18,20 @@ class PokemonViewModel(
     var detailState by mutableStateOf(PokemonDetailUiState())
         private set
 
-    fun loadList(limit: Int = 20) {
-        listState = listState.copy(isLoading = true, error = null)
+    fun loadList(limit: Int = 20, offset: Int = 0) {
+        listState = listState.copy(
+            isLoading = true,
+            error = null,
+            limit = limit,
+            offset = offset
+        )
         viewModelScope.launch {
             try {
-                val result = repository.getPokemonList(limit)
+                val result = repository.getPokemonList(limit, offset)
                 listState = listState.copy(
                     pokemons = result.results,
-                    isLoading = false
+                    isLoading = false,
+                    error = null
                 )
             } catch (e: Exception) {
                 listState = listState.copy(
@@ -37,14 +43,23 @@ class PokemonViewModel(
     }
 
     fun loadDetail(nameOrId: String) {
-        detailState = detailState.copy(isLoading = true, error = null)
+        detailState = detailState.copy(
+            isLoading = true,
+            error = null,
+            species = null,
+            speciesError = null
+        )
         viewModelScope.launch {
             try {
                 val result = repository.getPokemonDetail(nameOrId)
-                detailState = detailState.copy(
-                    detail = result,
-                    isLoading = false
-                )
+                detailState = detailState.copy(detail = result)
+                try {
+                    val speciesResult = repository.getPokemonSpecies(nameOrId)
+                    detailState = detailState.copy(species = speciesResult)
+                } catch (speciesError: Exception) {
+                    detailState = detailState.copy(speciesError = speciesError.message)
+                }
+                detailState = detailState.copy(isLoading = false)
             } catch (e: Exception) {
                 detailState = detailState.copy(
                     isLoading = false,
