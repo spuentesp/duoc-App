@@ -50,6 +50,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.app.viewmodel.PokemonViewModel
 
+/**
+ * Pantalla principal de la Pokédex. Exhibe la lista paginada y un panel de preview
+ * que se actualiza cada vez que el usuario busca o selecciona un Pokémon.
+ * También ofrece accesos directos al perfil a través del AppBar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonExplorerScreen(
@@ -64,10 +69,12 @@ fun PokemonExplorerScreen(
     var limitInput by rememberSaveable { mutableStateOf(listState.limit.toString()) }
     var offsetInput by rememberSaveable { mutableStateOf(listState.offset.toString()) }
 
+    // Carga inicial de la Pokédex cuando la pantalla entra en composición.
     LaunchedEffect(Unit) {
         viewModel.loadList()
     }
 
+    // Si la lista se recarga con distintos parámetros, actualizamos los TextField visibles.
     LaunchedEffect(listState.limit, listState.offset) {
         limitInput = listState.limit.toString()
         offsetInput = listState.offset.toString()
@@ -349,7 +356,10 @@ fun PokemonExplorerScreen(
         }
     }
 }
-
+/**
+ * Lista reutilizable de Pokémon. Mantiene su propio llamado a loadList para que
+ * pueda usarse en nav graphs secundarios sin depender del explorer.
+ */
 @Composable
 fun PokemonListScreen(
     onPokemonClick: (String) -> Unit,
@@ -393,7 +403,10 @@ fun PokemonListScreen(
         }
     }
 }
-
+/**
+ * Pantalla dedicada de detalle. Muestra navegación hacia atrás y toda la información
+ * disponible para el Pokémon, incluyendo species si estuvo disponible.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonDetailScreen(
@@ -474,7 +487,7 @@ fun PokemonDetailScreen(
 
             state.species?.let { info ->
                 item {
-                    Card {
+                    Card { // Información complementaria proveniente de /pokemon-species
                         Column(
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -530,7 +543,7 @@ fun PokemonDetailScreen(
             }
 
             state.speciesError?.let { speciesError ->
-                item {
+                item { // Avisamos a la persona usuaria sin bloquear el resto del detalle
                     Text(
                         text = "No fue posible cargar datos adicionales: $speciesError",
                         color = MaterialTheme.colorScheme.error

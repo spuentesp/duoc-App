@@ -9,6 +9,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.app.viewmodel.AuthViewModel
 
+/**
+ * Declaramos cada pantalla y su ruta como un sealed class para evitar errores de escritura.
+ */
 sealed class AppScreen(val route: String){
     object Welcome : AppScreen("welcome")
     object Register : AppScreen("register")
@@ -25,6 +28,11 @@ sealed class AppScreen(val route: String){
     }
 }
 
+/**
+ * Punto central de la navegación de Compose. Elegimos la pantalla inicial dependiendo
+ * de si existe un usuario almacenado. Todas las rutas relacionadas con Pokémon pasan
+ * por aquí para mantener el flujo coherente.
+ */
 @Composable
 fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
     val navController = rememberNavController()
@@ -84,7 +92,7 @@ fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
             val pokemonName = backStackEntry.arguments?.getString("pokemonName") ?: return@composable
             PokemonDetailScreen(
                 pokemonName = pokemonName,
-                onBack = { navController.navigateUp() }
+                onBack = { navController.navigateUp() } // activa la flecha del AppBar
             )
         }
 
