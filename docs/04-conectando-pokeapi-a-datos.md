@@ -20,6 +20,317 @@ Archivo: `app/src/main/java/com/example/app/model/Pokemon.kt`
 > 🧭 **Guía:** define estas data classes primero. Así, cuando agregues Retrofit, las respuestas se mapearán sin esfuerzo y evitarás campos `null` inesperados.
 
 ```kotlin
+Scaffold(
+    topBar = {
+        TopAppBar(
+            title = { Text(pokemonName.replaceFirstChar { it.uppercase() }) },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                }
+            }
+        )
+    }
+) { innerPadding ->
+    LazyColumn(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (state.isLoading) {
+            item { LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) }
+        }
+
+        state.error?.let { error ->
+            item { Text("Error: $error", color = MaterialTheme.colorScheme.error) }
+        }
+
+        state.detail?.let { detail ->
+            item {
+                Card {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(detail.name.replaceFirstChar { it.uppercase() }, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                        Text("ID: #${'$'}{detail.id}")
+                        detail.sprites.frontDefault?.let { url ->
+                            Image(
+                                painter = rememberAsyncImagePainter(url),
+                                contentDescription = detail.name,
+                                modifier = Modifier.fillMaxWidth().height(220.dp)
+                            )
+                        }
+                        Text("Tipos: ${'$'}{detail.types.joinToString { it.type.name }}")
+                    }
+                }
+            }
+        }
+
+        state.species?.let { info ->
+            item {
+                Card {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Tomamos la flavor text en español (o inglés) y limpiamos 
+ y 
+                        // Mostramos especie, felicidad base, ratio de captura y evolución previa si existe
+                    }
+                }
+            }
+        }
+
+        state.speciesError?.let { speciesError ->
+            item {
+                Text(
+                    text = "No fue posible cargar datos adicionales: $speciesError",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+```
+kotlin
+Scaffold(
+    topBar = {
+        TopAppBar(
+            title = { Text("Pokédex") },
+            actions = {
+                IconButton(onClick = onProfileClick) {
+                    Icon(Icons.Default.Person, contentDescription = "Ir al perfil")
+                }
+            }
+        )
+    }
+) { innerPadding ->
+    LazyColumn(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        item { Text("Explora Pokémon y usa el icono para volver al perfil.") }
+
+        item {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar por nombre o número") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { performSearch() })
+            )
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = limitInput,
+                    onValueChange = { limitInput = it },
+                    label = { Text("Limit") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next
+                    )
+                )
+                OutlinedTextField(
+                    value = offsetInput,
+                    onValueChange = { offsetInput = it },
+                    label = { Text("Offset") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    )
+                )
+                Button(
+                    onClick = {
+                        val limit = limitInput.toIntOrNull()?.takeIf { it > 0 } ?: 20
+                        val offset = offsetInput.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                        focusManager.clearFocus()
+                        viewModel.loadList(limit, offset)
+                    }
+                ) {
+                    Text("Actualizar")
+                }
+            }
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.End) {
+                Button(onClick = { performSearch() }, enabled = searchQuery.isNotBlank()) {
+                    Text("Consultar")
+                }
+            }
+        }
+
+        item {
+            Column {
+                if (detailState.isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                detailState.error?.let { Text("Error al consultar: $it", color = MaterialTheme.colorScheme.error) }
+                detailState.detail?.let { detail ->
+                    Card {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(detail.name.replaceFirstChar { it.uppercase() }, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            detail.sprites.frontDefault?.let { url ->
+                                Image(
+                                    painter = rememberAsyncImagePainter(url),
+                                    contentDescription = detail.name,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp)
+                                        .height(160.dp)
+                                )
+                            }
+                            Text("Tipos: ${'$'}{detail.types.joinToString { it.type.name }}")
+                            // Flavor text, especie, felicidad y ratio de captura desde pokemon-species
+                            TextButton(onClick = { onPokemonSelected(detail.name) }) {
+                                Text("Ver detalle completo")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item { Text("Pokémon disponibles", style = MaterialTheme.typography.titleMedium) }
+
+        if (listState.isLoading) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+
+        listState.error?.let { error ->
+            item { Text("Error al cargar la lista: $error", color = MaterialTheme.colorScheme.error) }
+        }
+
+        items(listState.pokemons) { pokemon ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        searchQuery = pokemon.name
+                        viewModel.loadDetail(pokemon.name) // refresca el panel superior
+                    }
+            ) {
+                val id = pokemon.url.trimEnd('/').substringAfterLast('/')
+                Text("#${'$'}id - ${'$'}{pokemon.name.replaceFirstChar { it.uppercase() }}", modifier = Modifier.padding(16.dp))
+            }
+        }
+    }
+}
+```
+kotlin
+Scaffold(
+    topBar = {
+        TopAppBar(
+            title = { Text("Pokédex") },
+            actions = {
+                IconButton(onClick = onProfileClick) {
+                    Icon(Icons.Default.Person, contentDescription = "Ir al perfil")
+                }
+            }
+        )
+    }
+) { innerPadding ->
+    LazyColumn(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        item { Text("Explora Pokémon y usa el icono para volver al perfil.") }
+
+        item {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar por nombre o número") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { performSearch() })
+            )
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(/* limit */)
+                OutlinedTextField(/* offset */)
+                Button(onClick = { /* actualiza limit/offset */ }) { Text("Actualizar") }
+            }
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.End) {
+                Button(onClick = { performSearch() }, enabled = searchQuery.isNotBlank()) {
+                    Text("Consultar")
+                }
+            }
+        }
+
+        item {
+            Column {
+                if (detailState.isLoading) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                detailState.error?.let { Text("Error al consultar: $it", color = MaterialTheme.colorScheme.error) }
+                detailState.detail?.let { detail ->
+                    Card {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(detail.name.replaceFirstChar { it.uppercase() }, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                            // Imagen frontal + tipos desde /pokemon/{id}
+                            // Flavor text, especie, felicidad base, ratio de captura desde /pokemon-species/{id}
+                            TextButton(onClick = { onPokemonSelected(detail.name) }) {
+                                Text("Ver detalle completo")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item { Text("Pokémon disponibles", style = MaterialTheme.typography.titleMedium) }
+
+        if (listState.isLoading) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+        }
+
+        listState.error?.let { error ->
+            item { Text("Error al cargar la lista: $error", color = MaterialTheme.colorScheme.error) }
+        }
+
+        items(listState.pokemons) { pokemon ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable {
+                        searchQuery = pokemon.name
+                        viewModel.loadDetail(pokemon.name) // refresca el panel superior
+                    }
+            ) {
+                Text(
+                    text = "#${'$'}{pokemon.url.trimEnd('/').substringAfterLast('/')} - ${'$'}{pokemon.name.replaceFirstChar { it.uppercase() }}",
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+    }
+}
+```
+kotlin
 data class BasicPokemon(
     val name: String,
     val url: String // URL con la ruta al detalle; luego extraemos el ID de aquí
@@ -262,7 +573,7 @@ Archivo: `app/src/main/java/com/example/app/view/PokemonScreens.kt`
 
 ### `PokemonExplorerScreen`: hub principal tras el login
 
-> 🎯 **Guía:** lanza `loadList()` en `LaunchedEffect` y permite modificar `limit/offset` para replicar consultas como `pokemon?limit=100000&offset=0`. Agrega mejoras incrementales (búsqueda, filtros) sin romper el flujo principal.
+> 🎯 **Guía:** lanza `loadList()` en `LaunchedEffect`, usa un `LazyColumn` para que todo el panel sea scrollable y permite modificar `limit/offset` como en `pokemon?limit=100000&offset=0`. Agrega mejoras incrementales (búsqueda, filtros) sin romper el flujo principal.
 
 ```kotlin
 @Composable

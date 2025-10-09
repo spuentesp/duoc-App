@@ -82,7 +82,10 @@ fun AppNavigation(authViewModel: AuthViewModel = viewModel()) {
             )
         ) { backStackEntry ->
             val pokemonName = backStackEntry.arguments?.getString("pokemonName") ?: return@composable
-            PokemonDetailScreen(pokemonName = pokemonName)
+            PokemonDetailScreen(
+                pokemonName = pokemonName,
+                onBack = { navController.navigateUp() }
+            )
         }
 
         composable(route = AppScreen.MainScreen.route) {

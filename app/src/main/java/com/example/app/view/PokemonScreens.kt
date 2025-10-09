@@ -3,6 +3,7 @@ package com.example.app.view
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.app.viewmodel.PokemonViewModel
@@ -97,202 +100,223 @@ fun PokemonExplorerScreen(
                     }
                 }
             )
-        },
+        }
     ) { innerPadding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(16.dp)
         ) {
-            Text(
-                text = "Explora Pokémon y utiliza el icono del AppBar para volver a tu perfil.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text("Buscar por nombre o número") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(
-                    onSearch = { performSearch() }
-                )
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = limitInput,
-                    onValueChange = { limitInput = it },
-                    label = { Text("Limit") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    )
-                )
-                OutlinedTextField(
-                    value = offsetInput,
-                    onValueChange = { offsetInput = it },
-                    label = { Text("Offset") },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    )
-                )
-                Button(
-                    onClick = {
-                        val parsedLimit = limitInput.toIntOrNull()?.takeIf { it > 0 } ?: 20
-                        val parsedOffset = offsetInput.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                        focusManager.clearFocus()
-                        viewModel.loadList(parsedLimit, parsedOffset)
-                    }
-                ) {
-                    Text("Actualizar")
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Button(
-                    onClick = { performSearch() },
-                    enabled = searchQuery.isNotBlank()
-                ) {
-                    Text("Consultar")
-                }
-            }
-
-            if (detailState.isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
-
-            detailState.error?.let { error ->
+            item {
                 Text(
-                    text = "Error al consultar: $error",
-                    color = MaterialTheme.colorScheme.error
+                    text = "Explora Pokémon y utiliza el icono del AppBar para volver a tu perfil.",
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 
-            detailState.detail?.let { detail ->
-                Card(
-                    modifier = Modifier.fillMaxWidth()
+            item {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Buscar por nombre o número") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(onSearch = { performSearch() })
+                )
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = detail.name.replaceFirstChar { it.uppercase() },
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
+                    OutlinedTextField(
+                        value = limitInput,
+                        onValueChange = { limitInput = it },
+                        label = { Text("Limit") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
                         )
-
-                        detail.sprites.frontDefault?.let { url ->
-                            Image(
-                                painter = rememberAsyncImagePainter(url),
-                                contentDescription = detail.name,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp)
-                                    .height(160.dp)
-                            )
+                    )
+                    OutlinedTextField(
+                        value = offsetInput,
+                        onValueChange = { offsetInput = it },
+                        label = { Text("Offset") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                    Button(
+                        onClick = {
+                            val parsedLimit = limitInput.toIntOrNull()?.takeIf { it > 0 } ?: 20
+                            val parsedOffset = offsetInput.toIntOrNull()?.coerceAtLeast(0) ?: 0
+                            focusManager.clearFocus()
+                            viewModel.loadList(parsedLimit, parsedOffset)
                         }
+                    ) {
+                        Text("Actualizar")
+                    }
+                }
+            }
 
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(
+                        onClick = { performSearch() },
+                        enabled = searchQuery.isNotBlank()
+                    ) {
+                        Text("Consultar")
+                    }
+                }
+            }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (detailState.isLoading) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    detailState.error?.let { error ->
                         Text(
-                            text = "Tipos: ${detail.types.joinToString { it.type.name }}",
-                            style = MaterialTheme.typography.bodyMedium
+                            text = "Error al consultar: $error",
+                            color = MaterialTheme.colorScheme.error
                         )
+                    }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                    detailState.detail?.let { detail ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = detail.name.replaceFirstChar { it.uppercase() },
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
 
-                        val species = detailState.species
-                        species?.let { info ->
-                            val flavor = info.flavorTextEntries.firstOrNull { entry ->
-                                entry.language.name == "es"
-                            } ?: info.flavorTextEntries.firstOrNull { entry ->
-                                entry.language.name == "en"
-                            }
-
-                            flavor?.flavorText
-                                ?.replace("\n", " ")
-                                ?.replace("\u000c", " ")
-                                ?.takeIf { it.isNotBlank() }
-                                ?.let { flavorText ->
-                                    Text(
-                                        text = flavorText,
-                                        style = MaterialTheme.typography.bodyMedium
+                                detail.sprites.frontDefault?.let { url ->
+                                    Image(
+                                        painter = rememberAsyncImagePainter(url),
+                                        contentDescription = detail.name,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 16.dp)
+                                            .height(160.dp)
                                     )
-                                    Spacer(modifier = Modifier.height(8.dp))
                                 }
 
-                            val genus = info.genera.firstOrNull { entry ->
-                                entry.language.name == "es"
-                            } ?: info.genera.firstOrNull { entry ->
-                                entry.language.name == "en"
-                            }
-
-                            genus?.let { entry ->
                                 Text(
-                                    text = "Especie: ${entry.genus}",
+                                    text = "Tipos: ${detail.types.joinToString { it.type.name }}",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                val species = detailState.species
+                                species?.let { info ->
+                                    val flavor = info.flavorTextEntries.firstOrNull { entry ->
+                                        entry.language.name == "es"
+                                    } ?: info.flavorTextEntries.firstOrNull { entry ->
+                                        entry.language.name == "en"
+                                    }
+
+                                    flavor?.flavorText
+                                        ?.replace("\n", " ")
+                                        ?.replace("\u000c", " ")
+                                        ?.takeIf { it.isNotBlank() }
+                                        ?.let { flavorText ->
+                                            Text(
+                                                text = flavorText,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                        }
+
+                                    val genus = info.genera.firstOrNull { entry ->
+                                        entry.language.name == "es"
+                                    } ?: info.genera.firstOrNull { entry ->
+                                        entry.language.name == "en"
+                                    }
+
+                                    genus?.let { entry ->
+                                        Text(
+                                            text = "Especie: ${entry.genus}",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
+
+                                    Text(
+                                        text = "Felicidad base: ${info.baseHappiness ?: "—"}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "Ratio de captura: ${info.captureRate ?: "—"}",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    info.evolvesFromSpecies?.name?.let { origin ->
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Evoluciona de: ${origin.replaceFirstChar { it.uppercase() }}",
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
+
+                                detailState.speciesError?.let { speciesError ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "No fue posible cargar información adicional: $speciesError",
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+
+                                TextButton(
+                                    onClick = { onPokemonSelected(detail.name) }
+                                ) {
+                                    Text("Ver detalle completo")
+                                }
                             }
-
-                            Text(
-                                text = "Felicidad base: ${info.baseHappiness ?: "—"}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Ratio de captura: ${info.captureRate ?: "—"}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-
-                            info.evolvesFromSpecies?.name?.let { origin ->
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Evoluciona de: ${origin.replaceFirstChar { it.uppercase() }}",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-
-                        detailState.speciesError?.let { speciesError ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "No fue posible cargar información adicional: $speciesError",
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-
-                        TextButton(
-                            onClick = { onPokemonSelected(detail.name) }
-                        ) {
-                            Text("Ver detalle completo")
                         }
                     }
                 }
             }
 
-            Text(
-                text = "Pokémon disponibles",
-                style = MaterialTheme.typography.titleMedium
-            )
+            item {
+                Text(
+                    text = "Pokémon disponibles",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
 
             if (listState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                listState.error?.let { error ->
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+
+            listState.error?.let { error ->
+                item {
                     Text(
                         text = "Error al cargar la lista: $error",
                         color = MaterialTheme.colorScheme.error
@@ -300,32 +324,26 @@ fun PokemonExplorerScreen(
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = true)
-            ) {
-                items(listState.pokemons) { pokemon ->
-                    val idFromUrl = pokemon.url.trimEnd('/').substringAfterLast('/').toIntOrNull()
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                searchQuery = pokemon.name
-                                viewModel.loadDetail(pokemon.name)
+            items(listState.pokemons) { pokemon ->
+                val idFromUrl = pokemon.url.trimEnd('/').substringAfterLast('/').toIntOrNull()
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable {
+                            searchQuery = pokemon.name
+                            viewModel.loadDetail(pokemon.name)
+                        }
+                ) {
+                    Text(
+                        text = buildString {
+                            idFromUrl?.let {
+                                append("#$it - ")
                             }
-                    ) {
-                        Text(
-                            text = buildString {
-                                idFromUrl?.let {
-                                    append("#$it - ")
-                                }
-                                append(pokemon.name.replaceFirstChar { char -> char.uppercase() })
-                            },
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
+                            append(pokemon.name.replaceFirstChar { char -> char.uppercase() })
+                        },
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
         }
@@ -379,6 +397,7 @@ fun PokemonListScreen(
 @Composable
 fun PokemonDetailScreen(
     pokemonName: String,
+    onBack: () -> Unit,
     viewModel: PokemonViewModel = viewModel()
 ) {
     val state = viewModel.detailState
@@ -387,38 +406,136 @@ fun PokemonDetailScreen(
         viewModel.loadDetail(pokemonName)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        }
-
-        state.error?.let { error ->
-            Text(text = "Error: $error", color = MaterialTheme.colorScheme.error)
-        }
-
-        state.detail?.let { detail ->
-            Text(
-                text = detail.name.replaceFirstChar { it.uppercase() },
-                fontSize = 28.sp
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(pokemonName.replaceFirstChar { it.uppercase() }) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                }
             )
-
-            detail.sprites.frontDefault?.let { url ->
-                Image(
-                    painter = rememberAsyncImagePainter(url),
-                    contentDescription = detail.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .height(200.dp)
-                )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (state.isLoading) {
+                item {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Tipos: ${detail.types.joinToString { it.type.name }}")
+            state.error?.let { error ->
+                item {
+                    Text(text = "Error: $error", color = MaterialTheme.colorScheme.error)
+                }
+            }
+
+            state.detail?.let { detail ->
+                item {
+                    Card {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = detail.name.replaceFirstChar { it.uppercase() },
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "ID: #${detail.id}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            detail.sprites.frontDefault?.let { url ->
+                                Image(
+                                    painter = rememberAsyncImagePainter(url),
+                                    contentDescription = detail.name,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(220.dp)
+                                )
+                            }
+                            Text(
+                                text = "Tipos: ${detail.types.joinToString { it.type.name }}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+            }
+
+            state.species?.let { info ->
+                item {
+                    Card {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val flavor = info.flavorTextEntries.firstOrNull { entry ->
+                                entry.language.name == "es"
+                            } ?: info.flavorTextEntries.firstOrNull { entry ->
+                                entry.language.name == "en"
+                            }
+
+                            flavor?.flavorText
+                                ?.replace("\n", " ")
+                                ?.replace("\u000c", " ")
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { flavorText ->
+                                    Text(
+                                        text = flavorText,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+
+                            val genus = info.genera.firstOrNull { entry ->
+                                entry.language.name == "es"
+                            } ?: info.genera.firstOrNull { entry ->
+                                entry.language.name == "en"
+                            }
+
+                            genus?.let { entry ->
+                                Text(
+                                    text = "Especie: ${entry.genus}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
+                            Text(
+                                text = "Felicidad base: ${info.baseHappiness ?: "—"}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Ratio de captura: ${info.captureRate ?: "—"}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+
+                            info.evolvesFromSpecies?.name?.let { origin ->
+                                Text(
+                                    text = "Evoluciona de: ${origin.replaceFirstChar { it.uppercase() }}",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            state.speciesError?.let { speciesError ->
+                item {
+                    Text(
+                        text = "No fue posible cargar datos adicionales: $speciesError",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         }
     }
 }
