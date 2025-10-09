@@ -25,6 +25,37 @@ Repositories (PokemonRepository, UserRepository)
 PokeAPI (Retrofit) / SharedPreferences
 ```
 
+### Vista rápida (Mermaid) del flujo MVVM + PokeAPI
+
+```mermaid
+graph TD
+    subgraph View["View - Compose"]
+        A[Login/QuickLogin]:::auth
+        B[PokemonExplorerScreen]:::poke
+        C[PokemonDetailScreen]:::poke
+    end
+    subgraph ViewModel["ViewModel"]
+        VM1[AuthViewModel]:::auth
+        VM2[PokemonViewModel]:::poke
+    end
+    subgraph Repository["Repositories"]
+        R1[UserRepository]:::auth
+        R2[PokemonRepository]:::poke
+    end
+    subgraph Data["Fuentes de datos"]
+        D1[SharedPreferences]:::auth
+        D2["PokeAPI(Retrofit)"]:::poke
+    end
+
+    A --> VM1 --> R1 --> D1
+    B --> VM2
+    C --> VM2
+    VM2 --> R2 --> D2
+
+    classDef auth fill:#fce9d0,stroke:#c77b30,color:#342407
+    classDef poke fill:#d8ecff,stroke:#2a7fb8,color:#08324d
+```
+
 ### Capas y archivos clave
 
 | Capa | Responsabilidad | Archivos principales |
